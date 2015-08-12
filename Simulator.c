@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "Register.c"
 
 //Instruction set 
 //lw sw
@@ -9,10 +10,28 @@
 
 
 //Where will I initialize? 
+/*
 int memoryArray[100] = {0}; 
 int registerArray[32] = {0};	//should be array of structs
+*/
+
+int * instructionMemory; 
+reg* registers; 
+int * memory; 
+
+
+char* registersToString() {
+	int i = 0; 	
+	for(i; i < sizeOf(reg); i++) {
+		
+	} 
+} 
+
 
 int main() {
+	//initialize registers
+
+	//initialize memory 
 	printf("hello world");
 
 	
