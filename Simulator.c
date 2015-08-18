@@ -131,10 +131,10 @@ void printMemory() {
 
 void initializeInstructionMemory() {
 	instructionMemory = (int*) calloc(50, sizeof(int));
-	instructionMemory[1] = 0x20080003;  //addi $t0, $zero, 3 
+	instructionMemory[0] = 0x20080003;  //addi $t0, $zero, 3 
 	instructionMemory[1] = 0x20090004;  //addi $t1, $zero, 4 
-	instructionMemory[1] = 0x01095020;  //add $t2, $t0, $t1 
-	instructionMemory[1] = 0x0000000c;  //end
+	instructionMemory[2] = 0x01095020;  //add $t2, $t0, $t1 
+	instructionMemory[3] = 0x0000000c;  //end
 }
 
 void printInstructionMemory() { 
@@ -151,6 +151,9 @@ void printInstructionMemory() {
 
 int main() {
 	printf("Start Computer \n");
+		int test = 8; 
+		int shifted = test>>2;  			
+		printf("%d %d \n", test, shifted);
 	
 	//initialize instruction array (manually) 
 	//instructionMemory = (int*) calloc(sizeof(int)*50);
@@ -165,14 +168,37 @@ int main() {
 	printRegisters();
 	printMemory();	
 
+	
 	//start loop for clock, time driven simulation
-	while(programCounter < 600) {
-
+	while(programCounter < 4) {
+		
+		int instruction = instructionMemory[programCounter] >> 26;
+		int field1 = instructionMemory[programCounter] >> 21 & 0x01f;    //00000011111;
+		int field2 = (instructionMemory[programCounter] >> 16) & 0x01f;  //0000000000011111;
+		int field3 = (instructionMemory[programCounter] >> 11) & 0x01f;  //000000000000000011111;
+		int field4 = (instructionMemory[programCounter] >> 6) & 0x01f;   //00000000000000000000011111;
+		int field5 = instructionMemory[programCounter] & 0x01f;   	     //00000000000000000000000000111111;
+		int addressField = instructionMemory[programCounter] & 0x0000ffff; //00000000000000001111111111111111;
+		printf("%d feild1: %d adress: %d \n", instruction, field1, addressField);
 		//switch statement for different instructions
 		switch(instruction) { 
-			
-
-
+			//add or subtract			
+			case 0: 	
+				switch(field5) {
+					//add					
+					case 32:				
+					
+					//subtract
+					case 34:
+				
+				} 
+				 
+			//addi									
+			case 8: 	
+			//lw
+			case 35:
+			//sw		
+			case 43:							
 		}
 
 		//advance clock for instruction memory 
