@@ -14,6 +14,3 @@ struct reg* createReg(char *type, int value);
 
 #endif
 
-
-
-
