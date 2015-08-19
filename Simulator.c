@@ -23,6 +23,7 @@ int sizeOfMemory = 100;
 //Declaring methods 
 struct reg* createReg(char *type, int value);
 void initializeRegisters();
+void changeRegisterValue(struct reg*, int value);
 void printRegisters();
 void printMemory();
 
@@ -65,7 +66,7 @@ int main() {
 		//For debuging only! 
 		printf("%d feild1: %d adress: %d \n", instruction, field1, addressField);
 
-/*
+
 	switch(instruction) { 
 			//add or subtract			
 			case 0: 	
@@ -93,7 +94,7 @@ int main() {
 			default: //ERROR
 		}
 		
-	*/
+	
 	programCounter++; //advance clock for instruction memory (probaly in switch)
 	}
 
