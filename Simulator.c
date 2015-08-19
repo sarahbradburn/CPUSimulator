@@ -23,7 +23,7 @@ int sizeOfMemory = 100;
 //Declaring methods 
 struct reg* createReg(char *type, int value);
 void initializeRegisters();
-void changeRegisterValue(struct reg*, int value);
+void changeRegisterValue(struct reg* r, int value);
 void printRegisters();
 void printMemory();
 
@@ -47,7 +47,7 @@ int main() {
 	initializeInstructionMemory();
 	memory = (int*) calloc(sizeOfMemory, sizeof(int));
 	initializeRegisters();
-	printRegisters();
+
 	printMemory();	
 
 	
@@ -64,10 +64,11 @@ int main() {
 		int addressField = instructionMemory[programCounter] & 0x0000ffff; //00000000000000001111111111111111;
 	
 		//For debuging only! 
-		printf("%d feild1: %d adress: %d \n", instruction, field1, addressField);
+		printf("op(8): %d  field1 (8, or 9?): %d  field2 (zero?): %d adress: %d \n", instruction, field1, field2, addressField);
 
 
 	switch(instruction) { 
+/*
 			//add or subtract			
 			case 0: 	
 				switch(field5) {
@@ -80,10 +81,15 @@ int main() {
 					//the stop instruction? 
 				
 				} 
-				break;				 
+				break;		
+*/		 
 			//addi									
-			case 8: 
+			case 8: ;
+				int sum = field1 + addressField; 
+				printf("\n SUM:%d \n", sum);
+				changeRegisterValue(registers[field2], sum);
 				break;	
+/*			
 			//lw
 			case 35:
 				break;
@@ -92,12 +98,14 @@ int main() {
 				break;
 			//add cases for the other instructions 						
 			default: //ERROR
+*/
 		}
+
 		
 	
 	programCounter++; //advance clock for instruction memory (probaly in switch)
 	}
-
+	printRegisters();
 	//End simulation
 	return 0;
 
@@ -123,7 +131,9 @@ struct reg* createReg(char *type, int value) {
 /** 
  *	TODO method that changes value of a register that's passed in
  */
-
+void changeRegisterValue(struct reg* r, int value) { 
+	r->value = value; 
+} 
 
 
 /**
