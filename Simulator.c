@@ -17,7 +17,7 @@ int * instructionMemory;
 struct reg* registers; 
 int * memory; 
 
-int programCounter;
+int programCounter = 0;
 int sizeOfMemory = 100; 
 
 //Declaring methods 
@@ -50,9 +50,9 @@ int main() {
 
 	printMemory();	
 
-	
+	int flag = 0;
 	//start loop for clock, time driven simulation (will continue until stop instruction reached) 
-	while(programCounter < 4) {
+	while(flag == 0) {
 		
 		//Uses bit manipulation to isolate all values
 		int instruction = instructionMemory[programCounter] >> 26;
@@ -66,28 +66,35 @@ int main() {
 		//For debuging only! 
 		printf("op(8): %d  field1 (8, or 9?): %d  field2 (zero?): %d adress: %d \n", instruction, field1, field2, addressField);
 
-
-	switch(instruction) { 
-/*
+	
+		switch(instruction) { 
 			//add or subtract			
 			case 0: 	
 				switch(field5) {
 					//add					
-					case 32:				
+					case 32: ;
+						int sum = registers[field1].value + registers[field2].value;
+						changeRegisterValue(&registers[field3], sum); 			
+						programCounter++;
 						break;
-					//subtract
-					case 34:
+					//subtract 
+					case 34:;
+						int difference = registers[field1].value - registers[field2].value;
+						changeRegisterValue(&registers[field3], sum); 			
+						programCounter++;
 						break;
-					//the stop instruction? 
-				
+					//end
+					case 12: ;
+						flag = 1;
+						break;		
 				} 
 				break;		
-*/		 
+	
 			//addi									
 			case 8: ;
-				int sum = field1 + addressField; 
-				printf("\n SUM:%d \n", sum);
-				changeRegisterValue(registers[field2], sum);
+				int sum = registers[field1].value + addressField; 
+				changeRegisterValue(&registers[field2], sum);
+				programCounter++;
 				break;	
 /*			
 			//lw
@@ -103,7 +110,7 @@ int main() {
 
 		
 	
-	programCounter++; //advance clock for instruction memory (probaly in switch)
+		 //advance clock for instruction memory (probaly in switch)
 	}
 	printRegisters();
 	//End simulation
