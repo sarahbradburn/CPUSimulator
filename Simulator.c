@@ -85,7 +85,7 @@ int main() {
 						break;
 					//end
 					case 12: ;
-						flag = 1;
+						flag = 1;  //call exit 
 						break;		
 				} 
 				break;		
@@ -96,14 +96,23 @@ int main() {
 				changeRegisterValue(&registers[field2], sum);
 				programCounter++;
 				break;	
-/*			
-			//lw
+		
+			//lw (adress should be in adress field, get value from that adress, put it in register
 			case 35:
+				int address = field2 + addressField;
+				changeRegisterValue(&registers[field3], memory[address]); 	
 				break;
 			//sw		
 			case 43:	
+				int address = field2 + addressField;
+				memory[adress] = field3;
 				break;
-			//add cases for the other instructions 						
+
+/*
+			//slt? 
+			//beq
+			//j
+							
 			default: //ERROR
 */
 		}
