@@ -33,38 +33,71 @@ void printMemory();
  */
 void initializeInstructionMemory() {
 	instructionMemory = (int*) calloc(50, sizeof(int));
-	instructionMemory[0] = 0x20080003;  //addi $t0, $zero, 3 
-	instructionMemory[1] = 0x20090004;  //addi $t1, $zero, 4 
-	instructionMemory[2] = 0x01095020;  //add $t2, $t0, $t1 
-	instructionMemory[3] = 0x0000000c;  //end
+	instructionMemory[0] = 0x20100004; //initializes s0-s3
+	instructionMemory[1] = 0x20110003;
+	instructionMemory[2] = 0x20120005;
+	instructionMemory[3] = 0x20130001;
+
+	instructionMemory[4] = 0x0211402a;  //s0 = smallest
+	instructionMemory[5] = 0x0212482a;
+	instructionMemory[6] = 0x01095024;
+	instructionMemory[7] = 0x126a0009;
+
+	instructionMemory[8] = 0x0230402a;  //s1 = smallest
+	instructionMemory[9] = 0x0232482a;
+	instructionMemory[10] = 0x01095024;
+	instructionMemory[11] = 0x126a0007;
+
+	instructionMemory[12] = 0x0251402a;  //s2 = smallest
+	instructionMemory[13] = 0x0250482a;
+	instructionMemory[14] = 0x01095024;
+	instructionMemory[15] = 0x126a0005;
+
+	instructionMemory[16] = 0x02321820;  //set output
+	instructionMemory[17] = 0x0810001f;
+
+	instructionMemory[18] = 0x02121820;
+	instructionMemory[19] = 0x0810001f;
+
+	instructionMemory[20] = 0x02301820;
+	instructionMemory[21] = 0x0810001f;
+
+	instructionMemory[22] = 0x3402000a;  //end			
+	instructionMemory[23] = 0x0000000c;
+
 }
 
 
 int main() {
 	printf("Start Computer \n");
+
 	
 	//initialize all data structures
 	initializeInstructionMemory();
 	memory = (int*) calloc(sizeOfMemory, sizeof(int));
 	initializeRegisters();
 
-	printMemory();	
+//	printMemory();	
+
 
 	int flag = 0;
 	//start loop for clock, time driven simulation (will continue until stop instruction reached) 
 	while(flag == 0) {
+	
+	printf("%d \n", programCounter);
 		
 		//Uses bit manipulation to isolate all values
 		int instruction = instructionMemory[programCounter] >> 26;
 		int field1 = instructionMemory[programCounter] >> 21 & 0x01f;    //00000011111;
 		int field2 = (instructionMemory[programCounter] >> 16) & 0x01f;  //0000000000011111;
 		int field3 = (instructionMemory[programCounter] >> 11) & 0x01f;  //000000000000000011111;
-		int field4 = (instructionMemory[programCounter] >> 6) & 0x01f;   //00000000000000000000011111;
+//		int field4 = (instructionMemory[programCounter] >> 6) & 0x01f;   //00000000000000000000011111;
 		int field5 = instructionMemory[programCounter] & 0x03f;   	     //00000000000000000000000000111111; 
 		int addressField = instructionMemory[programCounter] & 0x0000ffff; //00000000000000001111111111111111;
+		int jType = instructionMemory[programCounter] & 0x03ffffff ; //00000011111111111111111111111111
 	
 		//For debuging only! 
-		printf("op(8): %d  field1 (8, or 9?): %d  field2 (zero?): %d adress: %d \n", instruction, field1, field2, addressField);
+//		printf("op(8): %d  field1 (8, or 9?): %d  field2 (zero?): %d adress: %d \n", instruction, field1, field2, addressField);
 
 	
 		switch(instruction) { 
@@ -80,7 +113,25 @@ int main() {
 					//subtract 
 					case 34:;
 						int difference = registers[field1].value - registers[field2].value;
-						changeRegisterValue(&registers[field3], sum); 			
+						changeRegisterValue(&registers[field3], difference); 			
+						programCounter++;
+						break;
+					//slt 
+					case 42:;
+						int lessThan = 0;
+						if(field1 < field2) {
+							lessThan = 1;
+						}
+						changeRegisterValue(&registers[field3], lessThan); 
+						programCounter++;
+						break;
+					//and 
+					case 36:;
+						int andValue = 0;
+						if(field1 == 1 && field2 == 1) {
+							andValue = 1;
+						}
+						changeRegisterValue(&registers[field3], andValue); 
 						programCounter++;
 						break;
 					//end
@@ -98,20 +149,33 @@ int main() {
 				break;	
 		
 			//lw (adress should be in adress field, get value from that adress, put it in register
-			case 35:
+			case 35:;
 				int address = field2 + addressField;
 				changeRegisterValue(&registers[field3], memory[address]); 	
+				programCounter++;			
 				break;
 			//sw		
-			case 43:	
-				int address = field2 + addressField;
-				memory[adress] = field3;
+			case 43:;	
+				int address1 = field2 + addressField;
+				memory[address1] = field3;
+				programCounter++;
 				break;
-
-/*
-			//slt? 
-			//beq
 			//j
+			case 2:;
+				int moveTo = ((jType/4)-4194304)-9;  //this could be off by 1
+				programCounter = moveTo;				
+				break;
+			//beq
+			case 4:;
+				if(field1 == field2) {
+					programCounter = programCounter + addressField;
+				} else {
+					programCounter++;
+				}
+				break;
+					
+	/*
+
 							
 			default: //ERROR
 */
