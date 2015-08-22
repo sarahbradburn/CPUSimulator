@@ -5,10 +5,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-//clean up 
-//free
-//add default case
-
 
 /*
 CPU simulator instruction set 
@@ -34,7 +30,7 @@ void initializeRegisters();
 void changeRegisterValue(struct reg* r, int value);
 void printRegisters();
 void printMemory();
-void alarmHandler(int sig);
+void clockTick(int sig);
 
 
 /** 
@@ -42,8 +38,8 @@ void alarmHandler(int sig);
  */
 void initializeInstructionMemory() {
 	instructionMemory = (int*) calloc(30, sizeof(int));
-/*
-	//Add two largest of 3 numbers
+
+	//Program 1: Add two largest of 3 numbers
 	instructionMemory[0] = 0x20100004; //initializes s0-s3
 	instructionMemory[1] = 0x20110003;
 	instructionMemory[2] = 0x20120005;
@@ -74,165 +70,133 @@ void initializeInstructionMemory() {
 	instructionMemory[21] = 0x0810001f;
 
 	instructionMemory[22] = 0x0000000c;  //end
-*/
 
-	
-	//tests add, addi, subtract, lw, and sw
+/*	
+	//Program 2: tests add, addi, subtract, and sw
 	instructionMemory[0] = 0x20080003;
 	instructionMemory[1] = 0x20090004;
 	instructionMemory[2] = 0x01095020;
 	instructionMemory[3] = 0x01285822;
 	instructionMemory[4] = 0xac0a0000;
 	instructionMemory[5] = 0x0000000c;
-
+*/
 }
 
 
 int main() {
 	printf("Start Computer \n");
 
-	
 	//initialize all data structures
 	initializeInstructionMemory();
 	memory = (int*) calloc(sizeOfMemory, sizeof(int));
 	initializeRegisters();
 
-signal(SIGALRM, alarmHandler);		
-alarm(1);
-while(flag == 0) {
-pause();
-}
-
-	
-
-
-	
-	//start loop for clock, time driven simulation (will continue until stop instruction reached) 
-	
-/*
+	//Alarm as clock
+	signal(SIGALRM, clockTick);		
+	alarm(1);
 	while(flag == 0) {
-		
+		pause();
+	}
 
-	//End simulation
-
-
-}
-*/
 	return 0;
 }
 
 
-void alarmHandler(int sig) {
-	printf("\nprogramCounter: %d \n", programCounter);
-	printRegisters();
-printMemory();	
-		
-		//Uses bit manipulation to isolate all values
-		int instruction = (instructionMemory[programCounter] >> 26) & 0x3f; //000111111
-		int field1 = instructionMemory[programCounter] >> 21 & 0x01f;    //00000011111;
-		int field2 = (instructionMemory[programCounter] >> 16) & 0x01f;  //0000000000011111;
-		int field3 = (instructionMemory[programCounter] >> 11) & 0x01f;  //000000000000000011111;
-//		int field4 = (instructionMemory[programCounter] >> 6) & 0x01f;   //00000000000000000000011111;
-		int field5 = instructionMemory[programCounter] & 0x03f;   	     //00000000000000000000000000111111; 
-		int addressField = instructionMemory[programCounter] & 0x0000ffff; //00000000000000001111111111111111;
-		int jType = instructionMemory[programCounter] & 0x03ffffff ; //00000011111111111111111111111111
+/**
+ * Executes one instruction
+ */
+void clockTick(int sig) {
+	//Uses bit manipulation to isolate all values
+	int instruction = (instructionMemory[programCounter] >> 26) & 0x3f; //000111111
+	int field1 = instructionMemory[programCounter] >> 21 & 0x01f;    //00000011111;
+	int field2 = (instructionMemory[programCounter] >> 16) & 0x01f;  //0000000000011111;
+	int field3 = (instructionMemory[programCounter] >> 11) & 0x01f;  //000000000000000011111;
+	int field5 = instructionMemory[programCounter] & 0x03f;   	     //00000000000000000000000000111111; 
+	int addressField = instructionMemory[programCounter] & 0x0000ffff; //00000000000000001111111111111111;
+	int jType = instructionMemory[programCounter] & 0x03ffffff ; //00000011111111111111111111111111
 	
-		//For debuging only! 
-		printf("\nop: %d  field1: %d  field2: %d field3: %d adress: %d ", instruction, registers[field1].value, registers[field2].value, registers[field3].value, addressField);
+	//Print Summary 
+	printf("\nprogramCounter: %d op: %d  field1: %d  field2: %d field3 Register: %d address: %d\n", programCounter, instruction, registers[field1].value, registers[field2].value, field3, addressField);
 
-	
-		switch(instruction) { 
-			//add or subtract			
-			case 0: 	
-				switch(field5) {
-					//add					
-					case 32: ;
-						int sum = registers[field1].value + registers[field2].value;
-						changeRegisterValue(&registers[field3], sum); 			
-						programCounter++;
-						break;
-					//subtract 
-					case 34:;
-						int difference = registers[field1].value - registers[field2].value;
-						changeRegisterValue(&registers[field3], difference); 			
-						programCounter++;
-						break;
-					//slt 
-					case 42:;
-						int lessThan = 0;
-					//	printf("\nfield1: %d field2: %d", field1, field2);
-						if(registers[field1].value < registers[field2].value) {
-							lessThan = 1;
-						}
-						changeRegisterValue(&registers[field3], lessThan); 
-						programCounter++;
-						break;
-					//and 
-					case 36:;
-						int andValue = 0;
-						if(registers[field1].value == 1 && registers[field2].value == 1) {
-							andValue = 1;
-						}
-						changeRegisterValue(&registers[field3], andValue); 
-						programCounter++;
-						break;
-					//end
-					case 12: ;
-						flag = 1;  //call exit 
-						break;		
-				} 
-				break;		
-	
-			//addi									
-			case 8: ;
-				int sum = registers[field1].value + addressField; 
-				changeRegisterValue(&registers[field2], sum);
-				programCounter++;
-				break;	
-		/*
-			//lw (adress should be in adress field, get value from that adress, put it in register
-			case 35:;
-				int address = registers[field2].value + addressField;
-				changeRegisterValue(&registers[field3], memory[address]); 	
-				programCounter++;			
-				break;
-*/
-			//sw		
-			case 43:;	
-				int address1 = registers[field1].value + addressField;
-				memory[address1] = registers[field2].value;
-				programCounter++;
-				break;
-			//j
-			case 2:;
-				int moveTo = (jType-(4194304/4))-9;  //this could be off by 1
-				programCounter = moveTo;				
-				break;
-			//beq
-			case 4:;
-				if(registers[field1].value == registers[field2].value) {
-
-					printf("I AM HERE!!!!");
-					programCounter = programCounter + addressField;
-				} else {
+	switch(instruction) { 
+		//add or subtract			
+		case 0: 	
+			switch(field5) {
+				//add					
+				case 32:;
+					int sum = registers[field1].value + registers[field2].value;
+					changeRegisterValue(&registers[field3], sum); 			
 					programCounter++;
-				}
-				break;
-					
-	/*
-
-							
-			default: //ERROR
-*/
-		}
-
-			//printRegisters();
-	alarm(1);
-		 //advance clock for instruction memory (probaly in switch)
+					break;
+				//subtract 
+				case 34:;
+					int difference = registers[field1].value - registers[field2].value;
+					changeRegisterValue(&registers[field3], difference); 			
+					programCounter++;
+					break;
+				//slt 
+				case 42:;
+					int lessThan = 0;
+					if(registers[field1].value < registers[field2].value) {
+						lessThan = 1;
+					}
+					changeRegisterValue(&registers[field3], lessThan); 
+					programCounter++;
+					break;
+				//and 
+				case 36:;
+					int andValue = 0;
+					if(registers[field1].value == 1 && registers[field2].value == 1) {
+						andValue = 1;
+					}
+					changeRegisterValue(&registers[field3], andValue); 
+					programCounter++;
+					break;
+				//end
+				case 12:;
+					flag = 1;  //call exit 
+					break;		
+			} 
+			break;		
+		//addi									
+		case 8:;
+			int sum = registers[field1].value + addressField; 
+			changeRegisterValue(&registers[field2], sum);
+			programCounter++;
+			break;	
+		//sw		
+		case 43:;	
+			int address1 = registers[field1].value + addressField;
+			memory[address1] = registers[field2].value;
+			programCounter++;
+			break;
+		//j
+		case 2:;
+			int moveTo = (jType-(4194304/4))-9;  //this could be off by 1
+			programCounter = moveTo;				
+			break;
+		//beq
+		case 4:;
+			if(registers[field1].value == registers[field2].value) {
+				programCounter = programCounter + addressField;
+			} else {
+				programCounter++;
+			}
+			break;
+		//illegal operation 
+		default:;
+			flag = 1;
+			break;				
 	}
+	printf("REGISTERS\n");
+	printRegisters();
+	printf("MEMORY\n");
+	printMemory();	
+	printf("\n");
 
-
-
+	//Call next alarm
+	alarm(1);
+}
 
 
 /**
@@ -249,7 +213,7 @@ struct reg* createReg(char *type, int value) {
 
 
 /** 
- *	TODO method that changes value of a register that's passed in
+ *	Changes value of a register that's passed in
  */
 void changeRegisterValue(struct reg* r, int value) { 
 	r->value = value; 
@@ -261,7 +225,6 @@ void changeRegisterValue(struct reg* r, int value) {
  * There has to be a better way to do this... think about it. 
  */
 void initializeRegisters() {
-
 	//allocate for array
 	registers = (struct reg *) malloc(sizeof(struct reg)*32);
 
