@@ -3,6 +3,8 @@
 #include <string.h>
 #include "Reg.h"  
 #include <unistd.h>
+#include <signal.h>
+
 
 /*
 CPU simulator instruction set 
@@ -20,6 +22,7 @@ int * memory;
 
 int programCounter = 0;
 int sizeOfMemory = 100; 
+int flag = 0;
 
 //Declaring methods 
 struct reg* createReg(char *type, int value);
@@ -27,6 +30,7 @@ void initializeRegisters();
 void changeRegisterValue(struct reg* r, int value);
 void printRegisters();
 void printMemory();
+void alarmHandler(int sig);
 
 
 /** 
@@ -34,7 +38,7 @@ void printMemory();
  */
 void initializeInstructionMemory() {
 	instructionMemory = (int*) calloc(30, sizeof(int));
-/*
+
 	//Add two largest of 3 numbers
 	instructionMemory[0] = 0x20100004; //initializes s0-s3
 	instructionMemory[1] = 0x20110003;
@@ -66,9 +70,9 @@ void initializeInstructionMemory() {
 	instructionMemory[21] = 0x0810001f;
 
 	instructionMemory[22] = 0x0000000c;  //end
-*/
 
-	
+
+/*	
 	//tests add, addi, subtract, lw, and sw
 	instructionMemory[0] = 0x20080003;
 	instructionMemory[1] = 0x20090004;
@@ -77,7 +81,7 @@ void initializeInstructionMemory() {
 	instructionMemory[4] = 0xac0a0000;
 	instructionMemory[5] = 0x8c0e0000;
 	instructionMemory[6] = 0x0000000c;
-
+*/
 }
 
 
@@ -90,13 +94,32 @@ int main() {
 	memory = (int*) calloc(sizeOfMemory, sizeof(int));
 	initializeRegisters();
 
+signal(SIGALRM, alarmHandler);		
+alarm(1);
+while(1) {
+pause();
+}
+
 //	printMemory();	
 
 
-	int flag = 0;
-	//start loop for clock, time driven simulation (will continue until stop instruction reached) 
-	while(flag == 0) {
 	
+	//start loop for clock, time driven simulation (will continue until stop instruction reached) 
+	
+/*
+	while(flag == 0) {
+		
+
+	//End simulation
+
+
+}
+*/
+	return 0;
+}
+
+
+void alarmHandler(int sig) {
 	printf("\nprogramCounter: %d \n REGISTERS: \n", programCounter);
 	printRegisters();
 		
@@ -198,16 +221,10 @@ int main() {
 */
 		}
 
-		
-	
+			printRegisters();
+	alarm(1);
 		 //advance clock for instruction memory (probaly in switch)
 	}
-
-	printRegisters();
-	//End simulation
-	return 0;
-
-}
 
 
 
