@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Reg.h"  
+#include <unistd.h>
 
 /*
 CPU simulator instruction set 
@@ -32,7 +33,9 @@ void printMemory();
  * Storing machine code in instruction memory
  */
 void initializeInstructionMemory() {
-	instructionMemory = (int*) calloc(50, sizeof(int));
+	instructionMemory = (int*) calloc(30, sizeof(int));
+/*
+	//Add two largest of 3 numbers
 	instructionMemory[0] = 0x20100004; //initializes s0-s3
 	instructionMemory[1] = 0x20110003;
 	instructionMemory[2] = 0x20120005;
@@ -62,8 +65,18 @@ void initializeInstructionMemory() {
 	instructionMemory[20] = 0x02301820;
 	instructionMemory[21] = 0x0810001f;
 
-	instructionMemory[22] = 0x3402000a;  //end			
-	instructionMemory[23] = 0x0000000c;
+	instructionMemory[22] = 0x0000000c;  //end
+*/
+
+	
+	//tests add, addi, subtract, lw, and sw
+	instructionMemory[0] = 0x20080003;
+	instructionMemory[1] = 0x20090004;
+	instructionMemory[2] = 0x01095020;
+	instructionMemory[3] = 0x01285822;
+	instructionMemory[4] = 0xac0a0000;
+	instructionMemory[5] = 0x8c0e0000;
+	instructionMemory[6] = 0x0000000c;
 
 }
 
@@ -84,7 +97,8 @@ int main() {
 	//start loop for clock, time driven simulation (will continue until stop instruction reached) 
 	while(flag == 0) {
 	
-	printf("%d \n", programCounter);
+	printf("\nprogramCounter: %d \n REGISTERS: \n", programCounter);
+	printRegisters();
 		
 		//Uses bit manipulation to isolate all values
 		int instruction = instructionMemory[programCounter] >> 26;
@@ -97,7 +111,7 @@ int main() {
 		int jType = instructionMemory[programCounter] & 0x03ffffff ; //00000011111111111111111111111111
 	
 		//For debuging only! 
-//		printf("op(8): %d  field1 (8, or 9?): %d  field2 (zero?): %d adress: %d \n", instruction, field1, field2, addressField);
+		printf("\nop: %d  field1: %d  field2: %d field3: %d adress: %d \n", instruction, registers[field1].value, registers[field2].value, registers[field3].value, addressField);
 
 	
 		switch(instruction) { 
@@ -119,7 +133,8 @@ int main() {
 					//slt 
 					case 42:;
 						int lessThan = 0;
-						if(field1 < field2) {
+					//	printf("\nfield1: %d field2: %d", field1, field2);
+						if(registers[field1].value < registers[field2].value) {
 							lessThan = 1;
 						}
 						changeRegisterValue(&registers[field3], lessThan); 
@@ -128,7 +143,7 @@ int main() {
 					//and 
 					case 36:;
 						int andValue = 0;
-						if(field1 == 1 && field2 == 1) {
+						if(registers[field1].value == 1 && registers[field2].value == 1) {
 							andValue = 1;
 						}
 						changeRegisterValue(&registers[field3], andValue); 
@@ -150,24 +165,26 @@ int main() {
 		
 			//lw (adress should be in adress field, get value from that adress, put it in register
 			case 35:;
-				int address = field2 + addressField;
+				int address = registers[field2].value + addressField;
 				changeRegisterValue(&registers[field3], memory[address]); 	
 				programCounter++;			
 				break;
 			//sw		
 			case 43:;	
-				int address1 = field2 + addressField;
-				memory[address1] = field3;
+				int address1 = registers[field2].value + addressField;
+				memory[address1] = registers[field3].value;
 				programCounter++;
 				break;
 			//j
 			case 2:;
-				int moveTo = ((jType/4)-4194304)-9;  //this could be off by 1
+				int moveTo = (jType-(4194304/4))-9;  //this could be off by 1
 				programCounter = moveTo;				
 				break;
 			//beq
 			case 4:;
-				if(field1 == field2) {
+				if(registers[field1].value == registers[field2].value) {
+
+					printf("I AM HERE!!!!");
 					programCounter = programCounter + addressField;
 				} else {
 					programCounter++;
@@ -185,6 +202,7 @@ int main() {
 	
 		 //advance clock for instruction memory (probaly in switch)
 	}
+
 	printRegisters();
 	//End simulation
 	return 0;
