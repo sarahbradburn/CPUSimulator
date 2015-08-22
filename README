@@ -1,0 +1,8 @@
+Simulator.c simulates the following MIPS instuctions from machine language:  
+	add, addi, sub, sw, slt, and, j, beq, syscall
+The 32 registers are represented by an array of reg structs, defined in Reg.h. 
+The simulator is time-driven, using alarm() to represent the clock. 
+Memory and registers are printed at each clock tick.
+
+You can run the program using the following command: 
+	make -s CFLAGS="-g -Wall -Werror" Simulator && ./Simulator

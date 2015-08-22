@@ -6,15 +6,6 @@
 #include <signal.h>
 
 
-/*
-CPU simulator instruction set 
-	lw sw
-	add sub addi
-	AND OR slt (as necessary) 
-	beq j
-*/
-
-
 //Memory and register data structures
 int * instructionMemory; 
 struct reg* registers; 
@@ -30,6 +21,7 @@ void initializeRegisters();
 void changeRegisterValue(struct reg* r, int value);
 void printRegisters();
 void printMemory();
+void freeArrays();
 void clockTick(int sig);
 
 
@@ -97,7 +89,9 @@ int main() {
 	while(flag == 0) {
 		pause();
 	}
-
+	
+	freeArrays();
+	printf("\nThe End\n\n");	
 	return 0;
 }
 
@@ -116,7 +110,7 @@ void clockTick(int sig) {
 	int jType = instructionMemory[programCounter] & 0x03ffffff ; //00000011111111111111111111111111
 	
 	//Print Summary 
-	printf("\nprogramCounter: %d op: %d  field1: %d  field2: %d field3 Register: %d address: %d\n", programCounter, instruction, registers[field1].value, registers[field2].value, field3, addressField);
+	printf("\nProgram Counter: %d op: %d  field1: %d  field2: %d field3 Register: %d address: %d\n", programCounter, instruction, registers[field1].value, registers[field2].value, field3, addressField);
 
 	switch(instruction) { 
 		//add or subtract			
@@ -254,10 +248,18 @@ void printRegisters() {
  * Prints values of memory locations
  */ 
 void printMemory() { 
-	printf("Memory \n");
 	int i; 	
-	for(i = 0; i < 10; i++) {
+	for(i = 0; i < sizeOfMemory; i++) {
 		printf("%d 0x%08x \n", i, memory[i]);
 	}
 } 
 
+
+/**
+ * Free data structures
+ */
+void freeArrays() {
+	free(instructionMemory);
+	free(registers);
+	free(memory);
+}
