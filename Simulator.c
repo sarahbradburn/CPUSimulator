@@ -5,6 +5,10 @@
 #include <unistd.h>
 #include <signal.h>
 
+//clean up 
+//free
+//add default case
+
 
 /*
 CPU simulator instruction set 
@@ -21,7 +25,7 @@ struct reg* registers;
 int * memory; 
 
 int programCounter = 0;
-int sizeOfMemory = 100; 
+int sizeOfMemory = 10; 
 int flag = 0;
 
 //Declaring methods 
@@ -38,7 +42,7 @@ void alarmHandler(int sig);
  */
 void initializeInstructionMemory() {
 	instructionMemory = (int*) calloc(30, sizeof(int));
-
+/*
 	//Add two largest of 3 numbers
 	instructionMemory[0] = 0x20100004; //initializes s0-s3
 	instructionMemory[1] = 0x20110003;
@@ -70,18 +74,17 @@ void initializeInstructionMemory() {
 	instructionMemory[21] = 0x0810001f;
 
 	instructionMemory[22] = 0x0000000c;  //end
+*/
 
-
-/*	
+	
 	//tests add, addi, subtract, lw, and sw
 	instructionMemory[0] = 0x20080003;
 	instructionMemory[1] = 0x20090004;
 	instructionMemory[2] = 0x01095020;
 	instructionMemory[3] = 0x01285822;
 	instructionMemory[4] = 0xac0a0000;
-	instructionMemory[5] = 0x8c0e0000;
-	instructionMemory[6] = 0x0000000c;
-*/
+	instructionMemory[5] = 0x0000000c;
+
 }
 
 
@@ -96,11 +99,11 @@ int main() {
 
 signal(SIGALRM, alarmHandler);		
 alarm(1);
-while(1) {
+while(flag == 0) {
 pause();
 }
 
-//	printMemory();	
+	
 
 
 	
@@ -120,11 +123,12 @@ pause();
 
 
 void alarmHandler(int sig) {
-	printf("\nprogramCounter: %d \n REGISTERS: \n", programCounter);
+	printf("\nprogramCounter: %d \n", programCounter);
 	printRegisters();
+printMemory();	
 		
 		//Uses bit manipulation to isolate all values
-		int instruction = instructionMemory[programCounter] >> 26;
+		int instruction = (instructionMemory[programCounter] >> 26) & 0x3f; //000111111
 		int field1 = instructionMemory[programCounter] >> 21 & 0x01f;    //00000011111;
 		int field2 = (instructionMemory[programCounter] >> 16) & 0x01f;  //0000000000011111;
 		int field3 = (instructionMemory[programCounter] >> 11) & 0x01f;  //000000000000000011111;
@@ -134,7 +138,7 @@ void alarmHandler(int sig) {
 		int jType = instructionMemory[programCounter] & 0x03ffffff ; //00000011111111111111111111111111
 	
 		//For debuging only! 
-		printf("\nop: %d  field1: %d  field2: %d field3: %d adress: %d \n", instruction, registers[field1].value, registers[field2].value, registers[field3].value, addressField);
+		printf("\nop: %d  field1: %d  field2: %d field3: %d adress: %d ", instruction, registers[field1].value, registers[field2].value, registers[field3].value, addressField);
 
 	
 		switch(instruction) { 
@@ -185,17 +189,18 @@ void alarmHandler(int sig) {
 				changeRegisterValue(&registers[field2], sum);
 				programCounter++;
 				break;	
-		
+		/*
 			//lw (adress should be in adress field, get value from that adress, put it in register
 			case 35:;
 				int address = registers[field2].value + addressField;
 				changeRegisterValue(&registers[field3], memory[address]); 	
 				programCounter++;			
 				break;
+*/
 			//sw		
 			case 43:;	
-				int address1 = registers[field2].value + addressField;
-				memory[address1] = registers[field3].value;
+				int address1 = registers[field1].value + addressField;
+				memory[address1] = registers[field2].value;
 				programCounter++;
 				break;
 			//j
@@ -221,7 +226,7 @@ void alarmHandler(int sig) {
 */
 		}
 
-			printRegisters();
+			//printRegisters();
 	alarm(1);
 		 //advance clock for instruction memory (probaly in switch)
 	}
@@ -288,7 +293,7 @@ void printRegisters() {
 void printMemory() { 
 	printf("Memory \n");
 	int i; 	
-	for(i = 0; i < 100; i++) {
+	for(i = 0; i < 10; i++) {
 		printf("%d 0x%08x \n", i, memory[i]);
 	}
 } 
